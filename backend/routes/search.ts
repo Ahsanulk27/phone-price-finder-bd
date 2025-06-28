@@ -3,7 +3,7 @@ import { scrapeDaraz } from "../scraper/daraz";
 
 const router = express.Router();
 
-router.get("/api/search", async (req, res) => {
+router.get("/search", async (req, res) => {
   const query = req.query.q as string;
   if (!query) {
     return res.status(400).json({ error: "Missing search query" });

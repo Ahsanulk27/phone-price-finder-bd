@@ -11,8 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { scrapeDaraz } from "../../backend/scraper/daraz"; //
-
 // Mock data for demonstration
 // const mockResults = [
 //   {
@@ -52,10 +50,12 @@ const Index = () => {
   const [sortBy, setSortBy] = useState("price-low");
   const [filterCondition, setFilterCondition] = useState("all");
   const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
     if (searchQuery.trim()) {
       setShowResults(true);
+      setLoading(true); // set loading true before fetch
       console.log("Searching for:", searchQuery);
       try {
         const res = await fetch(
@@ -65,9 +65,10 @@ const Index = () => {
         );
         const data = await res.json();
         setResults(data);
-        console.log("Search results:", data);
       } catch (error) {
         console.error("Error fetching search results: ", error);
+      } finally {
+        setLoading(false); // always set loading false
       }
     }
   };
@@ -226,62 +227,78 @@ const Index = () => {
             </div>
 
             {/* Results Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredResults.map((result, i) => (
-                <Card
-                  key={i}
-                  className="bg-slate-800 border-slate-700 card-hover cursor-pointer"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        {/* Placeholder logo emoji for now */}
-                        <div className="text-2xl">
-                          {result.source === "Daraz" ? "🛒" : "🧩"}
-                        </div>
-                        <div>
-                          <div className="text-sm text-slate-400">
-                            {result.source}
+            {/* Results Grid */}
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-slate-800 border border-slate-700 p-6 rounded-lg animate-pulse"
+                  >
+                    <div className="h-4 w-1/3 bg-slate-600 rounded mb-2"></div>
+                    <div className="h-4 w-2/3 bg-slate-700 rounded mb-4"></div>
+                    <div className="h-6 w-1/2 bg-slate-600 rounded mb-4"></div>
+                    <div className="h-10 w-full bg-slate-700 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredResults.map((result, i) => (
+                  <Card
+                    key={i}
+                    className="bg-slate-800 border-slate-700 card-hover cursor-pointer"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">
+                            {result.source === "Daraz" ? "🛒" : "🧩"}
                           </div>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs mt-1 ${
-                              result.condition === "new"
-                                ? "border-green-500 text-green-400"
-                                : "border-yellow-500 text-yellow-400"
-                            }`}
-                          >
-                            {result.condition}
-                          </Badge>
+                          <div>
+                            <div className="text-sm text-slate-400">
+                              {result.source}
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={`text-xs mt-1 ${
+                                result.condition === "new"
+                                  ? "border-green-500 text-green-400"
+                                  : "border-yellow-500 text-yellow-400"
+                              }`}
+                            >
+                              {result.condition}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <h4 className="text-lg font-semibold text-white mb-3">
-                      {result.title}
-                    </h4>
+                      <h4 className="text-lg font-semibold text-white mb-3">
+                        {result.title}
+                      </h4>
 
-                    <div className="flex items-center justify-between">
-                      <div className="text-2xl font-bold text-neon-teal-500">
-                        ৳ {result.price}
-                      </div>
-                      <a
-                        href={result.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button
-                          size="sm"
-                          className="bg-neon-teal-500 hover:bg-neon-teal-600 text-slate-900"
+                      <div className="flex items-center justify-between">
+                        <div className="text-2xl font-bold text-neon-teal-500">
+                          ৳ {result.price}
+                        </div>
+                        <a
+                          href={result.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
-                          View Deal
-                        </Button>
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                          <Button
+                            size="sm"
+                            className="bg-neon-teal-500 hover:bg-neon-teal-600 text-slate-900"
+                          >
+                            View Deal
+                          </Button>
+                        </a>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
